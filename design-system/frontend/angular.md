@@ -1,5 +1,5 @@
-# 🛠️ Desain Sistem Frontend (Angular)
-
+# Desain Sistem Frontend (Angular)
+##### Write by: Kelvin Febrian
 Dokumen ini menjelaskan praktik terbaik dan arsitektur yang diusulkan untuk pengembangan *frontend* menggunakan kerangka kerja **Angular**, mencakup manajemen komponen, *state*, integrasi API, penanganan *error*, performa, dan *form*.
 
 ---
