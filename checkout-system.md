@@ -1,3 +1,4 @@
+```mermaid
 graph TD
     Client[Frontend Web/App] -->|Checkout Request| APIGW[API Gateway + Rate Limiter]
 
@@ -17,3 +18,4 @@ graph TD
         MQ --> NotifSvc[Notification Service - Email/WA]
         MQ --> AnalyticsSvc[Data Warehouse Loader]
     end
+```
