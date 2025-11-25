@@ -57,29 +57,108 @@ graph TD
 ```
 
 ### 2. Manajemen State (State Management)
-Dalam ekosistem Angular modern, kita membagi state menjadi tiga lapisan untuk menjaga *Scalability* dan *Maintainability*.
+Manajemen state di Angular perlu dibagi menjadi tiga kategori utama: **Local UI State**, **Domain/Business State**, dan **App-wide Global State**.
 
-**Solusi yang Direkomendasikan**
-* **NGXS** atau **Ngrx**: Implementasi pola Redux yang menyediakan Store tunggal. Cocok untuk state aplikasi yang kompleks dan membutuhkan tracing.
-* **Pattern Service-Store-Component**: Untuk state domain yang lebih sederhana, gunakan Service sebagai Store yang menyimpan `BehaviorSubject`.
+**Jenis-Jenis State**
+**1. Local UI State**
+Contoh:
+* Modal terbuka/tertutup
+* Selected tab index
+* Dropdown expanded atau tidak
 
-**Strategi Performa**: `OnPush`
-* Atur `changeDetection: ChangeDetectionStrategy.OnPush` pada komponen untuk mengurangi siklus change detection.
-* Komponen hanya diperiksa ulang jika *Input Reference* berubah, event terjadi, atau *Observable* dengan *Async Pipe* memancarkan nilai baru.
+**Best practice**:
+* Simpan di dalam komponen
+* Gunakan `signal()`, `@Input`, atau variabel biasa
+* Jangan pernah masukkan UI state ke Store global
+
+**2. Domain/Business State**
+State yang digunakan untuk fitur tertentu.
+Contoh:
+* Daftar users
+* Daftar transaksi
+* Detail produk
+
+**Best practice:**
+* Simpan dalam Service menggunakan `BehaviorSubject`, signal, atau NGXS/Ngrx slice
+* Pisahkan antara:
+    * State
+    * Actions
+    * Selectors
+
+**3. App-wide Global State**
+State yang mempengaruhi seluruh aplikasi.
+Contoh:
+* User session
+* Auth token
+* Global settings
+* Theme (dark/light)
+
+**Best practice:**
+* Gunakan State Management library seperti:
+    * **NGXS**
+    * **Ngrx Store**
+    * **Akita**
 
 ```mermaid
 graph TD
-    A[UI Component] -->|1. Dispatch Action| B(Action<br/>e.g., 'LOAD_USER')
-    B --> C{Reducer / Mutator}
-    C -->|2. Compute New State| D[Store / Global State]
-    D -->|3. Select State Observable| A
-
-    style D fill:#f9f,stroke:#333
-    style A fill:#ccf,stroke:#333
+    A[UI Component] -->|Dispatch| B[Action]
+    B --> C[Reducer / Mutator]
+    C --> D[Store]
+    D -->|Select| A
 ```
 
-### 3. Praktik Terbaik Integrasi API (*API Integration Best Practices*)
-Semua permintaan ditangani oleh `HttpClientModule` dan *Observable*, dengan *interceptor* sebagai titik kendali global.
+### 3. Integrasi API (*API Integration*)
+Semua request API harus dilakukan melalui Service.
+
+**Kategori API Integration**
+**1. Standard API Calls**
+* GET / POST / PUT / DELETE
+* Menggunakan HttpClient
+
+**Best Practice**
+* Jangan panggil API di component
+* Gunakan `service.getUsers()` dll
+* Gunakan interface TypeScript sebagai response model
+
+**2. Interceptors**
+Interceptor adalah *middleware* **HTTP Angular**.
+
+Jenis-jenis *Interceptor*:
+1. **Auth Interceptor**
+    * Menambahkan **Authorization header**
+    * Menyimpan **token**
+2. **Error Interceptor**
+    * Tangani HTTP `400/401/500`
+
+3. **Logging Interceptor**
+    * Logging *request/response*
+
+4. **Caching Interceptor**
+    * Cache response `GET` tertentu
+
+5. **Retry Interceptor**
+    * Menggunakan **RxJS** `retryWhen()`
+
+**3. API Caching Patterns**
+Jenis Caching:
+* Memory Cache (BehaviorSubject)
+* RxJS shareReplay
+* SessionStorage / LocalStorage
+* Service Worker (PWA)
+
+```mermaid
+graph TD
+    A[Component] -->|Request| B[HttpClient]
+    B --> C[Auth Interceptor]
+    C --> D[Error Interceptor]
+    D --> E[Backend API]
+    E --> D --> C --> A
+```
+
+**Best Practice**
+* Jangan panggil API di component
+* Gunakan `service.getUsers()` dll
+* Gunakan interface TypeScript sebagai response model
 
 **Pola Akses Data**
 1. **Enkapsulasi di *Service***: Semua panggilan API dienkapsulasi dalam Service.
@@ -110,7 +189,40 @@ graph LR
 
 ### 4. Penanganan Batas Error (*Error Boundary Handling*)
 Di Angular, penanganan runtime error yang tidak tertangkap diimplementasikan menggunakan `ErrorHandler`.
-**Strategi**
+
+**1. Global Error Handler**
+Implement Angular `ErrorHandler`.
+Use-case:
+* Logging ke Sentry
+* Global alert pop-up
+* Fallback view
+
+**2. Component-level Error Handling**
+* `try/catch`
+* `RxJS` `catchError`
+* Guard pada service sebelum mengakses data null
+
+**3. HTTP Error Handling**
+Kategori error:
+* 4xx — Client Errors
+* 5xx — Server Errors
+* Network Error
+* Timeout Error
+
+Best practice:
+* Selalu tangani error di Interceptor
+* Tampilkan pesan ramah pengguna
+* Jangan expose error backend mentah
+
+```mermaid
+graph TD
+    A[Component] --> B[Service Call]
+    B --> C[Interceptor]
+    C -->|Error| D[Global Error Handler]
+    D --> E[UI Notification]
+```
+
+**Best Practice**
 * **Custom Error Handler**: Implementasikan kelas kustom yang mengimplementasikan `ErrorHandler` untuk menangkap error yang tidak tertangkap.
 * **Tanggung Jawab**: Melakukan **Logging** ke layanan eksternal (Sentry), menampilkan User **Feedback** yang ramah, dan memicu *Graceful Recovery*.
 ```mermaid
@@ -120,9 +232,10 @@ graph TD
     subgraph Error Handling
         B --> C[Global Error Handler - Angular ErrorHandler]
         C --> D[Child Component - Potensial Error]
+        D --> J[Service Component - Integrate Logic]
     end
     
-    D -- Runtime Error! --> E{Did ErrorHandler Catch}
+    J -- Runtime Error! --> E{Did ErrorHandler Catch}
     
     E -- Ya --> F[Logging Service]
     E -- Ya --> G[Tampilkan Notifikasi Error]
@@ -139,7 +252,16 @@ Memanfaatkan sistem *module* Angular untuk *lazy loading*.
 * **Lazy Loading Modul Rute**: Gunakan `loadChildren` di konfigurasi rute (`app-routing.module.ts`) untuk memuat *module* hanya saat user mengunjungi rute tersebut, mengurangi ukuran *initial bundle*.
 * **AOT (Ahead-of-Time) Compilation**: Memastikan kode Angular dikompilasi selama *build* untuk *startup time* yang lebih cepat.
 * **Pure Pipes**: Hanya dieksekusi ulang jika input primitif berubah, bertindak sebagai mekanisme *memoization* sederhana.
+* **Component Level**: Gunakan `ChangeDetectionStrategy.OnPush`, Pure Pipes, Signals (lebih efisien dari Observable)
+* **Bundle Optimization**: Build Dengan AOT, Production Mode, Minifying + Tree Shaking
+* **Image Optimization**: Gunakan *WebP/AVIF*, *Lazy Load Image*, dan `ngOptimizedImage`(Angular 15+)
 
+```mermaid
+graph TD
+ A[Route Visit] --> B{Lazy Loaded?}
+ B -- Yes --> C[Load Module on Demand]
+ B -- No --> D[Skip Loading]
+```
 ### 6. Form Handling & Validation
 Pendekatan **Reactive Forms** adalah yang utama karena kemudahan testing dan penanganan state yang berbasis *Observable*.
 **Pendekatan**
