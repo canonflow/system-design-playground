@@ -339,7 +339,7 @@ D -->|Subscribe| A
 ---
 
 ## 3. API Integration di React
-React tidak memiliki HTTPClient sendiri, sehingga strategi API adalah manual atau memakai library.
+React tidak memiliki `HTTPClient` sendiri, sehingga strategi API adalah manual atau memakai library.
 
 **Metode Untuk API**:
 **1. Fetch API / Axios (manual)**
@@ -348,6 +348,16 @@ Best practice:
 - Jangan panggil API langsung dalam render
 - Bungkus semua call dalam async function di service
 
+```jsx
+// /services/api.js
+import axios from "axios";
+
+export const api = axios.create({
+  baseURL: "https://api.example.com",
+  timeout: 10000,
+});
+
+```
 **2. React Query (Highly Recommended)**
 React Query memberikan:
 - caching
@@ -417,7 +427,6 @@ B --> D[Fallback UI]
 ---
 
 ## 5. Performance & Code Splitting (React)
-
 Memanfaatkan fitur bawaan React + bundler (Vite/Next/Webpack).
 
 **Teknik Utama:**
@@ -445,6 +454,65 @@ Keunggulan:
 
 **2. Formik + Yup**
 Untuk form kompleks & enterprise.
+**Formik** adalah library form management untuk React yang membantu mengelola:
+* nilai form (`values`)
+* error validasi (`errors`)
+* touched state (apakah field pernah diinteraksi)
+* submit state
+* onChange / onBlur handler
+* reset form
+
+**Yup** adalah library schema validation yang digunakan untuk:
+* mendefinisikan bentuk data form
+* validasi berbasis schema
+* membuat pesan error otomatis
+* reusable validation rules
+* nested validation (object, array, nested data)
+
+**Formik** + **Yup** dipakai bersama karena **Formik** berfungsi untuk mengelola **state form**, lalu **Yup** ditugaskan untuk mengelola **validasi form**.
+
+Contoh Penggunaan
+```jsx
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
+
+const validationSchema = Yup.object({
+  email: Yup.string().email("Email tidak valid").required("Email wajib diisi"),
+  password: Yup.string().min(6, "Minimal 6 karakter").required("Password wajib diisi"),
+});
+
+export default function LoginForm() {
+  return (
+    <Formik
+      initialValues={{ email: "", password: "" }}
+      validationSchema={validationSchema}
+      onSubmit={(values) => {
+        console.log("Submitted:", values);
+      }}
+    >
+      {(formik) => (
+        <Form>
+          <div>
+            <label>Email</label>
+            <Field name="email" type="email" />
+            <ErrorMessage component="p" name="email" />
+          </div>
+
+          <div>
+            <label>Password</label>
+            <Field name="password" type="password" />
+            <ErrorMessage component="p" name="password" />
+          </div>
+
+          <button type="submit" disabled={formik.isSubmitting}>
+            Login
+          </button>
+        </Form>
+      )}
+    </Formik>
+  );
+}
+```
 
 **Flow Form**
 ```mermaid
