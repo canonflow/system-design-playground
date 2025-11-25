@@ -4,42 +4,60 @@ Dokumen ini menjelaskan praktik terbaik dan arsitektur yang diusulkan untuk peng
 
 ---
 
-## 1. Siklus Hidup Komponen (*Component Lifecycle*)
-Angular mendefinisikan serangkaian *hook* yang memungkinkan Anda mengintervensi pada momen-momen kunci selama siklus hidup komponen.
+## 1. Siklus Hidup Komponen (*Component Lifecycle*) - Lengkap
 
-### Praktik Terbaik dan *Hook* Kunci
+Angular menjalankan serangkaian *hook* secara berurutan. Memahami urutan ini sangat penting untuk menghindari *bug* ras, kesalahan manipulasi DOM, dan masalah performa.
 
-| Hook Lifecycle | Kapan Dipanggil | Tujuan Penggunaan |
-| :--- | :--- | :--- |
-| **`ngOnInit`** | Setelah Angular selesai membuat *input properties* pertama kali. | **Inisialisasi Komponen** dan **Pengambilan Data Awal**. |
-| **`ngOnDestroy`** | Tepat sebelum Angular menghancurkan komponen. | **Pembersihan Sumber Daya**. Sangat penting untuk **unsubscribe** dari *Observables*. |
+### Urutan dan Detail Hook
 
-### Strategi Penggunaan RxJS
+| Urutan | Hook Lifecycle | Kapan Dipanggil | Tujuan & Best Practice |
+| :--- | :--- | :--- | :--- |
+| 1 | **`ngOnChanges`** | Saat properti input (`@Input`) data-bound berubah. Dipanggil *sebelum* `ngOnInit`. | Validasi input atau memperbarui *state* internal berdasarkan perubahan input eksternal. |
+| 2 | **`ngOnInit`** | Sekali, setelah `ngOnChanges` pertama. | **Logika Inisialisasi**. Tempat terbaik untuk *fetching* data awal ke API. Jangan memanipulasi DOM di sini (elemen mungkin belum ada). |
+| 3 | **`ngDoCheck`** | Setiap siklus *Change Detection*. | Mendeteksi perubahan yang tidak disadari Angular. **Hati-hati:** Sering dipanggil, hindari logika berat di sini. |
+| 4 | **`ngAfterContentInit`** | Sekali, setelah konten eksternal diproyeksikan (`<ng-content>`). | Inisialisasi yang bergantung pada konten yang disisipkan dari luar komponen. |
+| 5 | **`ngAfterContentChecked`** | Setiap kali konten proyeksi diperiksa. | Verifikasi perubahan pada konten proyeksi. |
+| 6 | **`ngAfterViewInit`** | Sekali, setelah tampilan komponen dan tampilan anak (*child views*) diinisialisasi. | **Manipulasi DOM**. Tempat aman untuk mengakses elemen DOM (misal: jQuery, Chart.js) atau menggunakan `@ViewChild`. |
+| 7 | **`ngAfterViewChecked`** | Setiap kali tampilan komponen diperiksa. | Logika yang bergantung pada perubahan tampilan/layout. |
+| 8 | **`ngOnDestroy`** | Tepat sebelum komponen dihapus. | **Cleanup**. Unsubscribe Observables, detach event handlers, stop timers/intervals untuk mencegah *memory leak*. |
 
-* **Pembersihan Otomatis:** Gunakan operator RxJS seperti `takeUntil` dengan subjek `Subject` di `ngOnDestroy` untuk memastikan semua *subscriptions* dihentikan secara otomatis.
-* **Pola *Async Pipe*:** Gunakan *Async Pipe* (`| async`) di *template* untuk **cleanup** otomatis dan mengoptimalkan *change detection*.
+### Diagram Aliran Siklus Hidup (Inisialisasi & Update)
+
+Diagram ini membedakan antara fase pembuatan awal (*Creation*) dan fase pembaruan (*Update*).
 
 ```mermaid
 graph TD
-    A[Start: Component Dibuat] --> B{Render Awal};
-    B --> C[DOM Dibuat / Mounting];
-    C --> D{ngOnInit / Side Effect};
+    subgraph Creation Phase
+        A[Constructor] --> B(ngOnChanges);
+        B --> C(ngOnInit);
+        C --> D(ngDoCheck);
+        D --> E(ngAfterContentInit);
+        E --> F(ngAfterContentChecked);
+        F --> G(ngAfterViewInit);
+        G --> H(ngAfterViewChecked);
+    end
 
-    D --> E{Idle / Siap Update};
+    subgraph Update Phase
+        I[Input Property Berubah?] -- Ya --> J(ngOnChanges);
+        J --> K(ngDoCheck);
+        I -- Tidak --> K;
+        K --> L(ngAfterContentChecked);
+        L --> M(ngAfterViewChecked);
+    end
 
-    E --> F{Props / State Berubah?};
-    F -- Ya --> B;
-    F -- Tidak --> E;
+    subgraph Destruction
+        H --> N[Component Destroyed];
+        M --> N;
+        N --> O(ngOnDestroy);
+    end
 
-    B -->|DOM Baru| C;
-
-    E --> G[Unmounting: Component Dihapus];
-    G --> H{ngOnDestroy / Cleanup};
-    H --> I[End: Selesai];
+    style C fill:#afa,stroke:#333
+    style G fill:#f9f,stroke:#333
+    style O fill:#faa,stroke:#333
 ```
 
 ### 2. Manajemen State (State Management)
-Untuk aplikasi berskala besar, disarankan menggunakan pola berbasis **RxJS** dan **Store**.
+Dalam ekosistem Angular modern, kita membagi state menjadi tiga lapisan untuk menjaga *Scalability* dan *Maintainability*.
 
 **Solusi yang Direkomendasikan**
 * **NGXS** atau **Ngrx**: Implementasi pola Redux yang menyediakan Store tunggal. Cocok untuk state aplikasi yang kompleks dan membutuhkan tracing.
