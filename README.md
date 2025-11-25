@@ -1,7 +1,45 @@
-# System Design Note-talker
+# System Design Note
 ##### Write by: Adrian Milano
 
 ## Microservices
+### Service-To-Service Communication
+#### 1. Pola Synchronous (Komunikasi Langsung)
+Pola ini melibatkan panggilan langsung dan real-time dari satu layanan ke layanan lain. Layanan pengirim harus menunggu respons sebelum melanjutkan tugasnya.
+
+**Mekanisme**
+- **Protokol Utama**: HTTP/HTTPS (sering menggunakan REST atau GraphQL) dan gRPC.
+- **Cara Kerja**: Service A menggunakan client library untuk memanggil endpoint (URI) Service B. Komunikasi terjadi melalui jaringan, dan Service A diblokir (blocking) hingga menerima respons atau timeout.
+
+**Kapan Digunakan?**
+- **Permintaan Kritis & Real-time**: Ketika layanan pengirim sangat membutuhkan hasil dari layanan penerima untuk menyelesaikan transaksinya.
+  - Contoh: `Auth Service` memverifikasi token dari `User Service`.
+  - Contoh: `Payment Service` memanggil `Fraud Service` untuk cek risiko sebelum melanjutkan transaksi.
+ 
+**Kelebihan vs Kekurangan**
+| Kelebihan                     | Kekurangan                                                                 |
+|------------------------------|----------------------------------------------------------------------------|
+| Simple dan Langsung: Mudah diimplementasikan dan di-debug. | Tight Coupling: Jika Service B mati, Service A bisa gagal (Cascading Failure). |
+| Respon Real-time: Hasil tersedia segera (Latensi rendah). | Scalability Challenge: Layanan yang sering dipanggil menjadi bottleneck (Titik sumbatan). |
+
+#### 2. Pola Asynchronous (Komunikasi Tidak Langsung)
+Pola ini menggunakan perantara (Broker) dan biasanya didorong oleh Event-Driven Architecture (EDA) yang baru saja kita bahas. Layanan pengirim tidak perlu menunggu respons.
+
+**Mekanisme**
+- **Protokol Utama**: Messaging/Event Streaming (AMQP, Kafka Protocol).
+- **Cara Kerja**: Service A (Producer) mengirim pesan/event ke Message Broker (Kafka, RabbitMQ). Broker menyimpan pesan tersebut. Service B (Consumer) mengambil pesan dari Broker sesuai waktunya. Service A dan B tidak pernah berkomunikasi langsung.
+
+**Kapan Digunakan?**
+- **Integrasi Long-Running Task**: Untuk tugas yang memakan waktu lama atau tidak mendesak.
+  - Contoh: Setelah Order Service membuat pesanan, ia mengirim event `ORDER_CREATED` ke Broker. Layanan lain (Inventory, Email, Data Analytics) mengonsumsi event tersebut.
+  - Contoh: Worker Pool mengambil tugas dari Queue.
+ 
+**Kelebihan vs Kekurangan**
+| Kelebihan                                                                 | Kekurangan                                                           |
+|---------------------------------------------------------------------------|----------------------------------------------------------------------|
+| Loose Coupling: Service independen, tidak ada cascading failure jika satu layanan mati. | Eventual Consistency: Data tidak sinkron secara instan.             |
+| Resilience: Pesan tetap di Broker meski Consumer mati, memastikan pemrosesan data (data durability). | Debugging Kompleks: Sulit melacak aliran pesan melintasi berbagai layanan. |
+
+
 ### Event-Driven Architecture
 **Event-Driven Architecture (EDA)** adalah pola arsitektur di mana layanan-layanan (services) dalam sistem berkomunikasi dengan cara memancarkan "Event" (Peristiwa), bukan dengan saling memanggil secara langsung (Direct Request).
 
