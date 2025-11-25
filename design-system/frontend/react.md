@@ -1,12 +1,12 @@
-# 🛠️ Design System Frontend (React)
-
+# Design System Frontend (React)
+##### Write by: Kelvin Febrian
 Dokumen ini merupakan versi React dengan struktur pembahasan yang paralel: lifecycle, state management, API integration, error boundaries, performance, dan form handling.
 
 ---
 
 ## 1. React Component Lifecycle
 
-React memiliki lifecycle berbeda dibanding Angular. Lifecycle bergantung pada class component atau function component (hooks). Modern React menggunakan **function components + hooks**.
+React memiliki Lifecycle yang bergantung pada class component atau function component (hooks). Modern React menggunakan **function components + hooks**.
 
 ### Lifecycle (Function Component + Hooks)
 
@@ -173,7 +173,6 @@ Pendekatan utama:
 - Redux Toolkit (opsional, jika dibutuhkan)
 
 **2.1 FEATURE STATE dengan Context + Reducer**
-Ini mirip Angular Service + Reducer.
 Struktur folder:
 ```
 /features/product/
@@ -340,19 +339,16 @@ D -->|Subscribe| A
 ---
 
 ## 3. API Integration di React
+React tidak memiliki HTTPClient sendiri, sehingga strategi API adalah manual atau memakai library.
 
-Tidak ada HttpClient seperti Angular, sehingga strategi API adalah manual atau memakai library.
-
-### Metode Untuk API:
-
-### 1. Fetch API / Axios (manual)
+**Metode Untuk API**:
+**1. Fetch API / Axios (manual)**
 Semua API dibuat pada folder `services/`.
-
 Best practice:
 - Jangan panggil API langsung dalam render
 - Bungkus semua call dalam async function di service
 
-### 2. React Query (Highly Recommended)
+**2. React Query (Highly Recommended)**
 React Query memberikan:
 - caching
 - retry
@@ -360,7 +356,7 @@ React Query memberikan:
 - invalidation
 - status loading/error otomatis
 
-### 3. Interceptors
+**3. Interceptors**
 Jika memakai **Axios**, buat instance custom:
 - auth header
 - retry
@@ -378,10 +374,9 @@ D --> C --> B --> A
 ---
 
 ## 4. Error Boundary Handling (React)
-
 React memiliki sistem error boundary bawaan untuk error runtime komponen.
 
-### 1. Error Boundary (Class Component Only)
+**1. Error Boundary (Class Component Only)**
 Digunakan untuk menangkap:
 - runtime error UI
 - crash di rendering
@@ -405,13 +400,13 @@ class ErrorBoundary extends React.Component {
 }
 ```
 
-### 2. API Error Handling
+**2. API Error Handling**
 Gunakan:
 - try/catch
 - error state
 - React Query `onError`
 
-### 3. Boundary Flow
+**3. Boundary Flow**
 ```mermaid
 graph TD
 A[Component] -->|Error| B[Error Boundary]
@@ -425,7 +420,7 @@ B --> D[Fallback UI]
 
 Memanfaatkan fitur bawaan React + bundler (Vite/Next/Webpack).
 
-### Teknik Utama:
+**Teknik Utama:**
 - **useMemo/useCallback** untuk expensive computation
 - **React.memo** untuk component memoization
 - **Code Splitting** menggunakan `React.lazy`
@@ -433,7 +428,7 @@ Memanfaatkan fitur bawaan React + bundler (Vite/Next/Webpack).
 - Debounce/throttle input
 - Virtualized list (react-window)
 
-### Lazy Loading
+**Lazy Loading**
 ```jsx
 const UserList = React.lazy(() => import("./UserList"));
 ```
@@ -441,19 +436,17 @@ const UserList = React.lazy(() => import("./UserList"));
 ---
 
 ## 6. Form Handling & Validation
-React tidak seperti Angular yang punya built-in form module.
-
-### Pilihan Utama:
-### 1. React Hook Form (Direkomendasikan)
+**Pilihan Utama:**
+**1. React Hook Form (Direkomendasikan)**
 Keunggulan:
 - cepat (uncontrolled input)
 - built-in resolver + schema validation
 - cocok form besar
 
-### 2. Formik + Yup
+**2. Formik + Yup**
 Untuk form kompleks & enterprise.
 
-### Flow Form
+**Flow Form**
 ```mermaid
 graph TD
 A[Input] --> B[Register Field]
