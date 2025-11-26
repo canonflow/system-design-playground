@@ -1,6 +1,37 @@
 # Microservices
 ##### Write by: Adrian Milano
 
+Microservices Architecture adalah gaya arsitektur yang menstrukturkan aplikasi sebagai kumpulan layanan-layanan kecil, mandiri, dan terdistribusi. Setiap layanan
+1. Dapat dideploy secara independen.
+2. Berjalan dalam prosesnya sendiri.
+3. Berkomunikasi melalui mekanisme ringan (seperti HTTP/REST atau Message Queue).
+4. Dibangun di sekitar kemampuan bisnis (berdasarkan konsep Bounded Context).
+
+**Perbandingan: Monolith vs. Microservices**
+| Fitur          | Monolithic Architecture                                                                 | Microservices Architecture                                                                 |
+|----------------|------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
+| **Struktur**       | Satu unit kode besar, semuanya dalam satu repo dan satu executable.                    | Kumpulan layanan kecil yang terpisah.                                                       |
+| **Deployment**     | Jika ada perubahan kecil, seluruh aplikasi harus di-build ulang dan di-deploy.         | Setiap layanan dapat di-deploy secara terpisah (independent deployment).                    |
+| **Skalabilitas**   | Hanya dapat diskalakan secara vertikal (menambah CPU/RAM server) atau menduplikasi seluruh aplikasi. | Dapat diskalakan secara horizontal (service-by-service) sesuai kebutuhan trafik.            |
+| **Teknologi**      | Terikat pada satu tech stack (misalnya, semua Go).                                     | Memungkinkan Polyglot Persistence (tiap layanan bisa memilih DB/bahasa terbaik).            |
+| **Kegagalan**      | Kegagalan di satu modul sering menyebabkan seluruh aplikasi down.                      | Failure Isolation — kegagalan satu layanan tidak menjatuhkan yang lain (Circuit Breaker).   |
+
+**Tantangan Utama Microservices**
+| Tantangan                         | Solusi yang Sudah Kita Bahas                                                                 |
+|-----------------------------------|-----------------------------------------------------------------------------------------------|
+| **Komunikasi Kompleks**          | API Gateway (Single Entry Point), Service Contract (Jaminan Schema).                         |
+| **Data Tersebar (Distributed Data)** | Setiap layanan memiliki DB-nya sendiri. Diatasi dengan Asynchronous Communication dan pola Saga untuk transaksi terdistribusi. |
+| **Latensi Jaringan**             | Panggilan jaringan antar layanan lebih lambat daripada panggilan fungsi lokal di Monolith.   |
+| **Debugging & Monitoring**       | Sulit melacak request melintasi 20 layanan.                                                   |
+| **Manajemen Konfigurasi**        | Mempertahankan secrets dan konfigurasi 20 layanan.                                            |
+
+**Pola Kunci yang Mendukung Microservices**
+1. Orkestrasi: Menggunakan Kubernetes atau Docker Swarm untuk mengelola deployment dan penskalaan setiap layanan secara otomatis.
+2. Service Mesh: Lapisan infrastruktur khusus (misalnya, Istio, Linkerd) untuk mengelola komunikasi layanan-ke-layanan, termasuk Circuit Breaker dan Retries secara transparan, melepaskan tugas tersebut dari kode aplikasi.
+3. Event Sourcing: Menggunakan Kafka untuk mencatat setiap perubahan status sebagai event yang tidak dapat diubah (immutable log), memungkinkan layanan lain bereaksi terhadap event tersebut.
+
+Microservices adalah arsitektur pilihan saat ini untuk perusahaan yang membutuhkan deployment cepat, skalabilitas tinggi, dan memungkinkan tim yang independen bekerja pada layanan yang berbeda tanpa saling memblokir (autonomy).
+
 ## **Service-To-Service Communication**
 #### 1. Pola Synchronous (Komunikasi Langsung)
 Pola ini melibatkan panggilan langsung dan real-time dari satu layanan ke layanan lain. Layanan pengirim harus menunggu respons sebelum melanjutkan tugasnya.
