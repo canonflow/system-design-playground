@@ -1,4 +1,4 @@
-# 🟦 Nuxt 3 Design System — Complete Guide
+# Nuxt 3 Design System — Complete Guide
 
 Dokumen ini berisi design system Nuxt 3 dengan pola yang konsisten seperti versi Angular & React: lifecycle, state, API integration, error handling, performance, dan form handling.
 
