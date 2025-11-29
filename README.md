@@ -10,13 +10,13 @@ Microservices Architecture adalah gaya arsitektur yang menstrukturkan aplikasi s
 4. Dibangun di sekitar kemampuan bisnis (berdasarkan konsep Bounded Context).
 
 **Perbandingan: Monolith vs. Microservices**
-| Fitur          | Monolithic Architecture                                                                 | Microservices Architecture                                                                 |
-|----------------|------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
-| **Struktur**       | Satu unit kode besar, semuanya dalam satu repo dan satu executable.                    | Kumpulan layanan kecil yang terpisah.                                                       |
-| **Deployment**     | Jika ada perubahan kecil, seluruh aplikasi harus di-build ulang dan di-deploy.         | Setiap layanan dapat di-deploy secara terpisah (independent deployment).                    |
-| **Skalabilitas**   | Hanya dapat diskalakan secara vertikal (menambah CPU/RAM server) atau menduplikasi seluruh aplikasi. | Dapat diskalakan secara horizontal (service-by-service) sesuai kebutuhan trafik.            |
-| **Teknologi**      | Terikat pada satu tech stack (misalnya, semua Go).                                     | Memungkinkan Polyglot Persistence (tiap layanan bisa memilih DB/bahasa terbaik).            |
-| **Kegagalan**      | Kegagalan di satu modul sering menyebabkan seluruh aplikasi down.                      | Failure Isolation — kegagalan satu layanan tidak menjatuhkan yang lain (Circuit Breaker).   |
+| Aspek | Monolithic Architecture                                                                                                                                    | Microservices Architecture                                                                                                                           |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Struktur      | **Kekuatan:** Satu unit kode besar; mudah dipahami & debug<br>**Kekurangan:** Sulit untuk tim besar; pengembangan paralel sulit                            | **Kekuatan:** Modular & terpisah; memudahkan tim besar & pengembangan paralel<br>**Kekurangan:** Kompleks setup; koordinasi antar layanan diperlukan |
+| Deployment    | **Kekuatan:** Deploy sekali untuk seluruh aplikasi; sederhana<br>**Kekurangan:** Perubahan kecil harus redeploy seluruh aplikasi; sulit skalasi horizontal | **Kekuatan:** Deploy independen tiap layanan; cepat iterasi & fleksibel<br>**Kekurangan:** Monitoring & orchestration lebih kompleks                 |
+| Skalabilitas  | **Kekuatan:** Diskalakan vertikal; replika seluruh aplikasi mudah<br>**Kekurangan:** Sulit diskalakan horizontal                                           | **Kekuatan:** Diskalakan horizontal per layanan; efisien untuk trafik tinggi<br>**Kekurangan:** Perlu manajemen skalabilitas per layanan             |
+| Teknologi     | **Kekuatan:** Konsisten; satu tech stack<br>**Kekurangan:** Terikat pada satu bahasa/DB; sulit pakai teknologi lain                                        | **Kekuatan:** Polyglot; tiap layanan bisa pilih bahasa/DB terbaik<br>**Kekurangan:** Integrasi lintas bahasa/DB bisa kompleks                        |
+| Kegagalan     | **Kekuatan:** Sederhana untuk monitoring<br>**Kekurangan:** Kegagalan satu modul bisa menjatuhkan seluruh aplikasi                                         | **Kekuatan:** Failure isolation; satu layanan gagal tidak menjatuhkan yang lain<br>**Kekurangan:** Debugging & tracing lebih sulit                   |
 
 **Tantangan Utama Microservices**
 | Tantangan                         | Solusi yang Sudah Kita Bahas                                                                 |
